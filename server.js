@@ -9,24 +9,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
 
-const dbPath = path.join(__dirname, "../../../db/db.json");
-
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../index.html"));
+  res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
 app.get("/notes", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../notes.html"));
+  res.sendFile(path.join(__dirname, "/public/notes.html"));
 });
 
 app.get("/api/notes", (req, res) => {
-  fs.readFile(dbPath, "utf-8", (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send("Error reading the database");
-    }
-    const notes = JSON.parse(data);
-    return res.json(notes);
+  fs.readFile("./db/db.json", "utf-8", (err, data) => {
+    res.json(JSON.parse(data));
   });
 });
 
