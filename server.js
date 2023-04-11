@@ -18,7 +18,7 @@ app.get("/notes", (req, res) => {
 });
 
 app.get("/api/notes", (req, res) => {
-  fs.readFile("./db/db.json", "utf-8", (err, data) => {
+  fs.readFile("./db/db.json", (err, data) => {
     res.json(JSON.parse(data));
   });
 });
@@ -27,7 +27,7 @@ app.post("/api/notes", (req, res) => {
   const newNote = req.body;
   newNote.id = Date.now().toString();
 
-  fs.readFile(dbPath, "utf-8", (err, data) => {
+  fs.readFile("./db/db.json", (err, data) => {
     if (err) {
       console.log(err);
       return res.status(500).send("Error reading the database");
@@ -36,7 +36,7 @@ app.post("/api/notes", (req, res) => {
     const notes = JSON.parse(data);
     notes.push(newNote);
 
-    fs.writeFile(dbPath, JSON.stringify(notes), "utf-8", (err) => {
+    fs.writeFile("./db/db.json", JSON.stringify(notes), (err) => {
       if (err) {
         console.log(err);
         return res.status(500).send("Error writing to the database");
@@ -48,31 +48,22 @@ app.post("/api/notes", (req, res) => {
 });
 
 app.delete("/api/notes/:id", (req, res) => {
-  const id = req.params.id;
-
-  fs.readFile(dbPath, "utf-8", (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send("Error reading the database");
-    }
-
-    try {
-      let notes = JSON.parse(data);
-      notes = notes.filter((note) => note.id !== id);
-      fs.writeFile(dbPath, JSON.stringify(notes), "utf-8", (err) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).send("Error writing to the database");
-        }
-
-        return res.sendStatus(200);
+  fs.readFile("./db/db.json", (err, data) => {
+    const clicked = req.params.id;
+    const json = JSON.parse(data);
+    const filtered = json.filter((note) => note.id !== clicked);
+    fs.writeFile("./db/db.json", JSON.stringify(filtered), (err) => {
+      console.log("note deleted");
+    });
+    if (filtered.length === 0) {
+      fs.writeFile("./db/db.json", "[]", (err) => {
+        console.log("all notes deleted");
       });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).send("Error parsing the database");
     }
+    res.sendFile(path.join(__dirname, "/public/notes.html"));
   });
 });
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../../index.html"));
 });
